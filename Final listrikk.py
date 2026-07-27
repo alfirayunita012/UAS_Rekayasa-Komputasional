@@ -1,43 +1,16 @@
-"""
-Preprocessing Script - Segmentasi Pola Konsumsi Listrik Rumah Tangga
-Project Final Komputasional: K-Means + Genetic Algorithm
-
-Tujuan:
-  Mengubah data mentah UCI "Individual Household Electric Power Consumption"
-  (resolusi per menit) menjadi fitur harian siap-klaster.
-
-Cara pakai:
-  1. Download dataset dari:
-     https://archive.ics.uci.edu/dataset/235/individual+household+electric+power+consumption
-     atau: https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set
-  2. Letakkan file 'household_power_consumption.txt' di folder yang sama
-     dengan script ini (atau ubah RAW_PATH di bawah).
-  3. Jalankan: python preprocess_features.py
-  4. Output: 'daily_features.csv' -> siap dipakai untuk K-Means & K-Means+GA.
-
-Dependencies:
-  pip install pandas numpy --break-system-packages
-"""
-
 import pandas as pd
 import numpy as np
 from pathlib import Path
 
-# ------------------------------------------------------------------
-# KONFIGURASI
-# ------------------------------------------------------------------
 RAW_PATH = "household_power_consumption.txt"   # ganti sesuai lokasi file
 OUTPUT_PATH = "daily_features.csv"
 
-# Jam yang dianggap "peak hours" (jam beban puncak listrik rumah tangga).
-# Umumnya jam 17.00 - 22.00 (waktu makan malam & aktivitas rumah tangga tinggi).
 PEAK_HOUR_START = 17
-PEAK_HOUR_END = 22   # eksklusif
+PEAK_HOUR_END = 22   
 
-# Jam yang dianggap "siang" untuk rasio siang/malam.
+
 DAY_HOUR_START = 6
-DAY_HOUR_END = 18    # eksklusif
-
+DAY_HOUR_END = 18   
 
 def load_raw_data(path: str) -> pd.DataFrame:
     """Load file mentah UCI (.txt, separator ';', missing value = '?')."""
@@ -101,14 +74,12 @@ def build_daily_features(df: pd.DataFrame) -> pd.DataFrame:
     df["week"] = df["datetime"].dt.isocalendar().week
     df["year"] = df["datetime"].dt.year
 
-    # --- Rata-rata konsumsi harian ---
     daily_avg = (
         df.groupby("date")["Global_active_power"]
         .mean()
         .rename("avg_daily_kwh")
     )
 
-    # --- Rata-rata konsumsi pada jam beban puncak ---
     peak_mask = (df["hour"] >= PEAK_HOUR_START) & (df["hour"] < PEAK_HOUR_END)
     peak_avg = (
         df[peak_mask]
@@ -117,7 +88,7 @@ def build_daily_features(df: pd.DataFrame) -> pd.DataFrame:
         .rename("peak_hour_kwh")
     )
 
-    # --- Rasio konsumsi siang vs malam ---
+
     day_mask = (df["hour"] >= DAY_HOUR_START) & (df["hour"] < DAY_HOUR_END)
     day_avg = df[day_mask].groupby("date")["Global_active_power"].mean().rename("day_kwh")
     night_avg = df[~day_mask].groupby("date")["Global_active_power"].mean().rename("night_kwh")
@@ -130,7 +101,6 @@ def build_daily_features(df: pd.DataFrame) -> pd.DataFrame:
     )
     date_to_week = df.groupby("date")[["year", "week"]].first()
 
-    # --- Gabungkan semua fitur ---
     features = pd.concat([daily_avg, peak_avg, day_avg, night_avg], axis=1)
     features = features.join(date_to_week)
     features = features.join(weekly_std, on=["year", "week"])
