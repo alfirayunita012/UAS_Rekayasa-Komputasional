@@ -1,15 +1,3 @@
-"""
-APLIKASI: Segmentasi Pola Konsumsi Listrik Rumah Tangga
-K-Means (Baseline) vs K-Means + Genetic Algorithm
-
-Cara menjalankan:
-  1. pip install streamlit pandas numpy scikit-learn matplotlib --break-system-packages
-  2. Pastikan file ini, 'daily_features.csv' ada di folder yang sama
-     (atau upload langsung lewat aplikasi)
-  3. Jalankan di terminal:  streamlit run app.py
-  4. Browser akan otomatis terbuka menampilkan aplikasinya.
-"""
-
 import time
 import numpy as np
 import pandas as pd
@@ -23,10 +11,6 @@ FEATURE_COLS = ["avg_daily_kwh", "peak_hour_kwh", "weekly_std_kwh", "day_night_r
 
 st.set_page_config(page_title="Segmentasi Konsumsi Listrik", layout="wide")
 
-
-# ------------------------------------------------------------------
-# FUNGSI INTI (sama seperti versi script, dibungkus untuk UI)
-# ------------------------------------------------------------------
 def load_and_scale(df):
     X_raw = df[FEATURE_COLS].values
     scaler = StandardScaler()
@@ -114,10 +98,6 @@ def run_multiple(X, k, n_runs, use_ga, ga_params):
         last_labels = labels
     return pd.DataFrame(records), last_labels
 
-
-# ------------------------------------------------------------------
-# UI - SIDEBAR (KONFIGURASI)
-# ------------------------------------------------------------------
 st.sidebar.title("⚙️ Konfigurasi")
 
 uploaded = st.sidebar.file_uploader("Upload daily_features.csv", type="csv")
@@ -140,9 +120,6 @@ ga_params = dict(
     tournament=3, elitism=2,
 )
 
-# ------------------------------------------------------------------
-# UI - HEADER
-# ------------------------------------------------------------------
 st.title("⚡ Segmentasi Pola Konsumsi Listrik Rumah Tangga")
 st.caption("K-Means (Baseline) vs K-Means + Genetic Algorithm — Optimasi Centroid Awal")
 
@@ -169,9 +146,6 @@ st.markdown(f"**Jumlah observasi:** {len(df)} hari &nbsp;|&nbsp; **Fitur:** {', 
 
 X = load_and_scale(df)
 
-# ------------------------------------------------------------------
-# TABS
-# ------------------------------------------------------------------
 tab2, tab3 = st.tabs(["🔬 Perbandingan Baseline vs GA", "📥 Hasil & Download"])
 
 # --- TAB 1: PERBANDINGAN ---
@@ -243,7 +217,6 @@ with tab2:
     else:
         st.info("Klik tombol **'🚀 Jalankan Analisis'** di sidebar untuk memulai.")
 
-# --- TAB 3: HASIL & DOWNLOAD ---
 with tab3:
     st.subheader("Unduh Hasil Analisis")
     if "df_base" in st.session_state:
